@@ -1,0 +1,16 @@
+# Jupyter & Python
+__pycache__/
+*.py[cod]
+*.ipynb_checkpoints
+
+# macOS
+.DS_Store
+
+# Streamlit
+.streamlit/
+
+# Env & IDEs
+env/
+venv/
+.idea/
+*.
