@@ -44,27 +44,22 @@ def root():
     return {"message": "✅ Fare & Mileage API is live"}
 
 
-@app.post("/predict")
+@app.post("/predict_fare")
 def predict_fare(data: FareInput):
-    # Convert input to model factors
-    ac_factor = 1.2
-    ride_type_factor = 1.0 if data.ride_type == "Shared" else 1.2
-    car_type_factor = {"Hatch": 1.0, "Sedan": 1.1, "SUV": 1.2}.get(data.car_type, 1.0)
-    time_of_day_factor = 1.0
-
-    input_df = pd.DataFrame([{
+    # Prepare input features
+    user_X = pd.DataFrame([{
         "vehicle_age": data.vehicle_age,
-        "ac_factor": ac_factor,
-        "ride_type_factor": ride_type_factor,
-        "car_type_factor": car_type_factor,
-        "time_of_day_factor": time_of_day_factor
+        "ac_factor": 1.2,
+        "ride_type_factor": 1.0 if data.ride_type == "Shared" else 1.2,
+        "car_type_factor": {"Hatch": 1.0, "Sedan": 1.1, "SUV": 1.2}[data.car_type],
+        "time_of_day_factor": 1.0
     }])
 
     # Predict mileage
-    predicted_mileage = float(model.predict(input_df)[0])
-    predicted_mileage = float(np.clip(predicted_mileage, 8.0, 22.0))
+    predicted_mileage = float(model.predict(user_X)[0])
+    predicted_mileage = max(predicted_mileage, 17.0)  # 👈 clamp to minimum 17
 
-    # Fare calculation
+    # Estimate fare
     fuel_used = data.trip_distance_km / predicted_mileage
     base_fare = fuel_used * data.fuel_price_per_litre
     final_fare = max(40, base_fare)
